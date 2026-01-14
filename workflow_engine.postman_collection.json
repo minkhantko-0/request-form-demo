@@ -1,0 +1,399 @@
+{
+	"info": {
+		"_postman_id": "e9e4c527-44f8-47f0-8c91-cff4a0369b59",
+		"name": "workflow_engine",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50499525",
+		"_collection_link": "https://smartpayv30.postman.co/workspace/SmartPayV3.0~8a0303eb-da71-4b20-8630-b2eb4d9dfa97/collection/50499525-e9e4c527-44f8-47f0-8c91-cff4a0369b59?action=share&source=collection_link&creator=50499525"
+	},
+	"item": [
+		{
+			"name": "start_workflow",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const res = JSON.parse(responseBody)\r",
+							"if(res){\r",
+							"    pm.collectionVariables.set('instanceId', res.data.id)\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"workflowId\" : \"csv_upload_v1\",\r\n    \"refId\": \"UPLOAD01\",\r\n    \"context\": {\r\n        \"fileName\": \"test_new.csv\",\r\n        \"path\": \"/uploads/test.csv\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows/start",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_tasks",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const res = JSON.parse(responseBody)\r",
+							"if(res){\r",
+							"    const tasks = res.data || []\r",
+							"    pm.collectionVariables.set('taskId', tasks[0].id)\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-role-id",
+						"value": "senior_manager",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "x-role-id",
+						"value": "manager",
+						"type": "text"
+					},
+					{
+						"key": "x-role-id",
+						"value": "ceo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/tasks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "task_complete",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-role-id",
+						"value": "manager",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"isApproved\": true,\r\n    \"remark\": \"Rejected\",\r\n    \"instanceId\": \"{{instanceId}}\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/tasks/:id/complete",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"tasks",
+						":id",
+						"complete"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{taskId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_workflows",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-role-id",
+						"value": "manager",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"isApproved\": false,\r\n    \"remark\": \"Approved\",\r\n    \"instanceId\": \"{{instanceId}}\"\r\n\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_roles",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/api/v1/roles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_workflow_detail",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-role-id",
+						"value": "senior_manager",
+						"type": "text"
+					},
+					{
+						"key": "x-role-id",
+						"value": "manager",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "x-role-id",
+						"value": "ceo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows/:key",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows",
+						":key"
+					],
+					"variable": [
+						{
+							"key": "key",
+							"value": "csv_upload_v1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create_workflow",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"key\": \"csv_upload_v4\",\r\n  \"name\": \"CSV Upload Workflow (Manager + Senior) with Noti per step \",\r\n  \"nodes\": [\r\n    {\r\n      \"key\": \"start\",\r\n      \"type\": \"start\"\r\n    },\r\n    {\r\n      \"key\": \"first_approval\",\r\n      \"type\": \"task\",\r\n      \"config\": {\r\n        \"type\": \"assignment\",\r\n        \"payload\": {\r\n          \"type\": \"role\",\r\n          \"roles\": [\r\n            \"manager\"\r\n          ]\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"key\": \"first_decision\",\r\n      \"type\": \"decision\"\r\n    },\r\n    {\r\n      \"key\": \"second_approval\",\r\n      \"type\": \"task\",\r\n      \"config\": {\r\n        \"type\": \"assignment\",\r\n        \"payload\": {\r\n          \"type\": \"role\",\r\n          \"roles\": [\r\n            \"senior_manager\"\r\n          ]\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"key\": \"first_approved_noti\",\r\n      \"type\": \"service\",\r\n      \"config\": {\r\n        \"type\": \"service\",\r\n        \"payload\": {\r\n          \"type\": \"http\",\r\n          \"method\": \"POST\",\r\n          \"url\": \"https://41l5r34h-3001.asse.devtunnels.ms/api/notifications\",\r\n          \"body\": {\r\n            \"title\": \"Approved\",\r\n            \"message\": \"Your request was approved by manager.\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"key\": \"rejected_noti\",\r\n      \"type\": \"service\",\r\n      \"config\": {\r\n        \"type\": \"service\",\r\n        \"payload\": {\r\n          \"type\": \"http\",\r\n          \"method\": \"POST\",\r\n          \"url\": \"https://41l5r34h-3001.asse.devtunnels.ms/api/notifications\",\r\n          \"body\": {\r\n            \"title\": \"Rejected request.\",\r\n            \"message\": \"Your request was rejected.\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"key\": \"second_decision\",\r\n      \"type\": \"decision\"\r\n    },\r\n    {\r\n      \"key\": \"second_approved_noti\",\r\n      \"type\": \"service\",\r\n      \"config\": {\r\n        \"type\": \"service\",\r\n        \"payload\": {\r\n          \"type\": \"http\",\r\n          \"method\": \"POST\",\r\n          \"url\": \"https://41l5r34h-3001.asse.devtunnels.ms/api/notifications\",\r\n          \"body\": {\r\n            \"title\": \"Approved\",\r\n            \"message\": \"Your request was approved by senior manager.\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"key\": \"end\",\r\n      \"type\": \"end\"\r\n    }\r\n  ],\r\n \r\n    {\r\n      \"fromNode\": \"start\",\r\n      \"toNode\": \"first_approval\"\r\n    },\r\n    {\r\n      \"fromNode\": \"first_approval\",\r\n      \"toNode\": \"first_decision\"\r\n    },\r\n    {\r\n      \"fromNode\": \"first_decision\",\r\n      \"toNode\": \"rejected_noti\",\r\n      \"config\": {\r\n        \"type\": \"condition\",\r\n        \"payload\": {\r\n          \"type\": \"jexl\",\r\n          \"expression\": \"variables.outputs.first_approval.isApproved == false\"\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"fromNode\": \"first_decision\",\r\n      \"toNode\": \"first_approved_noti\",\r\n      \"config\": {\r\n        \"type\": \"condition\",\r\n        \"payload\": {\r\n          \"type\": \"jexl\",\r\n          \"expression\": \"variables.outputs.first_approval.isApproved == true\"\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"fromNode\": \"first_approved_noti\",\r\n      \"toNode\": \"second_approval\"\r\n    },\r\n    {\r\n      \"fromNode\": \"second_approval\",\r\n      \"toNode\": \"second_decision\"\r\n    },\r\n    {\r\n      \"fromNode\": \"second_decision\",\r\n      \"toNode\": \"rejected_noti\",\r\n      \"config\": {\r\n        \"type\": \"condition\",\r\n        \"payload\": {\r\n          \"type\": \"jexl\",\r\n          \"expression\": \"variables.outputs.first_approval.isApproved == false\"\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"fromNode\": \"second_decision\",\r\n      \"toNode\": \"second_approved_noti\",\r\n      \"config\": {\r\n        \"type\": \"condition\",\r\n        \"payload\": {\r\n          \"type\": \"jexl\",\r\n          \"expression\": \"variables.outputs.first_approval.isApproved == true\"\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"fromNode\": \"rejected_noti\",\r\n      \"toNode\": \"end\"\r\n    },\r\n    {\r\n      \"fromNode\": \"second_approved_noti\",\r\n      \"toNode\": \"end\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_worflow_instances",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows/instances",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows",
+						"instances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_instance_detail",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows/instances/:instanceId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows",
+						"instances",
+						":instanceId"
+					],
+					"variable": [
+						{
+							"key": "instanceId",
+							"value": "cmkdgs7190000z8mvdk6ze4ij"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/api/v1/workflows/instances/:instanceId/history",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/api/v1/workflows/instances/:instanceId/history",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"api",
+						"v1",
+						"workflows",
+						"instances",
+						":instanceId",
+						"history"
+					],
+					"variable": [
+						{
+							"key": "instanceId",
+							"value": "cmkdeva5w000090mvzc9zbxr9"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "instanceId",
+			"value": ""
+		},
+		{
+			"key": "taskId",
+			"value": ""
+		}
+	]
+}
