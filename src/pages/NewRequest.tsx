@@ -106,7 +106,13 @@ export default function NewRequest() {
         response = await fetch(`${Envs.API_URL}/api/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data, schema }),
+          body: JSON.stringify({
+            data,
+            schema,
+            refId: `REQ-${Date.now()}`,
+            workflowId: formMapping.workflowId || "",
+            createdBy: user?.email || "anonymous",
+          }),
         });
       }
 
