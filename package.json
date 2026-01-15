@@ -23,7 +23,8 @@
     "@jsonforms/material-renderers": "^3.7.0",
     "@jsonforms/react": "^3.7.0",
     "ajv-errors": "^3.0.0",
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.10",
+    "notistack": "^3.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
