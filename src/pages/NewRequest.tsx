@@ -52,15 +52,27 @@ export default function NewRequest() {
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      if (formMapping?.workflowId) {
-        return api.startWorkflow(
-          formMapping.workflowId,
-          `REQ-${Date.now()}`,
-          data,
-          user?.email || 'unknown'
-        )
+      if (!formMapping?.workflowId) {
+        throw new Error('No workflow ID found')
       }
-      throw new Error('No workflow ID found')
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data,
+          schema: formMapping.formSchema,
+          workflowId: formMapping.workflowId,
+          refId: `REQ-${Date.now()}`,
+          createdBy: user?.email || 'unknown',
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form')
+      }
+
+      return response.json()
     },
     onSuccess: () => {
       alert('Request submitted successfully!')
