@@ -7,6 +7,10 @@ import {
   Paper,
   Typography,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { JsonForms } from "@jsonforms/react";
 import {
@@ -41,6 +45,8 @@ export default function NewRequest() {
 
   const [formData, setFormData] = useState<any>({});
   const [formMapping, setFormMapping] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
   const clearStoreData = () => {
     setFormData({});
@@ -100,7 +106,13 @@ export default function NewRequest() {
         response = await fetch(`${Envs.API_URL}/api/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data, schema }),
+          body: JSON.stringify({
+            data,
+            schema,
+            refId: `REQ-${Date.now()}`,
+            workflowId: formMapping.workflowId || "",
+            createdBy: user?.email || "anonymous",
+          }),
         });
       }
 
@@ -109,17 +121,34 @@ export default function NewRequest() {
     onSuccess: (result) => {
       console.log("Submission result:", result);
       if (result.success) {
-        alert("Request submitted successfully!");
-
-        navigate("/history");
+        setModalContent({
+          title: "Success",
+          message: "Request submitted successfully!",
+        });
+        setModalOpen(true);
       } else {
-        alert(`Failed to submit`);
+        setModalContent({
+          title: "Error",
+          message: "Failed to submit",
+        });
+        setModalOpen(true);
       }
     },
     onError: (error: any) => {
-      alert(`Failed to submit: ${error.message}`);
+      setModalContent({
+        title: "Error",
+        message: `Failed to submit: ${error.message}`,
+      });
+      setModalOpen(true);
     },
   });
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    if (modalContent.title === "Success") {
+      navigate("/history");
+    }
+  };
 
   const handleSubmit = () => {
     submitMutation.mutate({ data: formData, schema: formMapping.formSchema });
@@ -199,6 +228,18 @@ export default function NewRequest() {
           </>
         )}
       </Paper>
+
+      <Dialog open={modalOpen} onClose={handleModalClose}>
+        <DialogTitle>{modalContent.title}</DialogTitle>
+        <DialogContent>
+          <Typography>{modalContent.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleModalClose} variant="contained" autoFocus>
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
