@@ -15,7 +15,6 @@ import {
 } from "@jsonforms/material-renderers";
 import { createAjv } from "@jsonforms/core";
 import ajvErrors from "ajv-errors";
-import { enqueueSnackbar } from "notistack";
 import { api } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 import Header from "../components/Header";
