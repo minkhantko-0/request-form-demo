@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, IconButton } from '@mui/material'
+import { Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress } from '@mui/material'
 import { api } from '../api/client'
 import { useAuthStore } from '../store/authStore'
 import Header from '../components/Header'
@@ -8,20 +8,12 @@ import Header from '../components/Header'
 export default function Forms() {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
-  const queryClient = useQueryClient()
   
   const { data, isLoading } = useQuery({
     queryKey: ['formMappings'],
     queryFn: async () => {
       const result = await api.getFormMappings()
       return result.data
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: api.deleteFormMapping,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['formMappings'] })
     },
   })
 
@@ -70,14 +62,6 @@ export default function Forms() {
                   <TableCell>
                     <Button size="small" onClick={() => navigate(`/new/form?formId=${form.id}`)}>
                       Use
-                    </Button>
-                    <Button 
-                      size="small" 
-                      color="error"
-                      onClick={() => deleteMutation.mutate(form.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>

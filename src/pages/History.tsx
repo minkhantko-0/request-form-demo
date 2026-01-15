@@ -50,7 +50,6 @@ export default function History() {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Workflow</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Created At</TableCell>
               </TableRow>
@@ -59,7 +58,6 @@ export default function History() {
               {data?.data?.map((instance: any) => (
                 <TableRow key={instance.id}>
                   <TableCell>{instance.refId || instance.id}</TableCell>
-                  <TableCell>{instance.workflowId}</TableCell>
                   <TableCell>{instance.status}</TableCell>
                   <TableCell>{new Date(instance.createdAt).toLocaleString()}</TableCell>
                 </TableRow>
