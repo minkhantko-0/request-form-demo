@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, Typography, Card, CardContent, CardActions, Grid, CircularProgress, Chip } from '@mui/material'
+import { Box, Button, Typography, Card, CardContent, CardActions, Grid, CircularProgress, Chip, Tooltip } from '@mui/material'
 import { api } from '../api/client'
 import { useAuthStore } from '../store/authStore'
 import Header from '../components/Header'
@@ -57,7 +57,7 @@ export default function SelectFormType() {
               <Grid item xs={12} sm={6} md={4} key={form.id}>
                 <Card 
                   sx={{ 
-                    height: 240,
+                    height: 280,
                     display: 'flex',
                     flexDirection: 'column',
                     transition: 'all 0.3s',
@@ -67,7 +67,7 @@ export default function SelectFormType() {
                     }
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+                  <CardContent sx={{ flexGrow: 1, pb: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Typography sx={{ fontSize: 28 }}>📋</Typography>
                       <Chip 
@@ -75,35 +75,51 @@ export default function SelectFormType() {
                         size="small" 
                         color="primary" 
                         variant="outlined"
+                        sx={{
+                          maxWidth: '150px',
+                          '& .MuiChip-label': {
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }
+                        }}
                       />
                     </Box>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom 
-                      fontWeight={600}
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {form.name}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {form.description || 'No description available'}
-                    </Typography>
+                    <Tooltip title={form.name} placement="top">
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom 
+                        fontWeight={600}
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          minHeight: '64px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {form.name}
+                      </Typography>
+                    </Tooltip>
+                    <Tooltip title={form.description || 'No description available'} placement="bottom">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          minHeight: '60px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {form.description || 'No description available'}
+                      </Typography>
+                    </Tooltip>
                   </CardContent>
                   <CardActions sx={{ p: 2, pt: 0 }}>
                     <Button 
