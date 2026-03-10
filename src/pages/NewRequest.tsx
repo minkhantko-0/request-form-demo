@@ -39,12 +39,13 @@ const Envs = {
 export default function NewRequest() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const formId = searchParams.get("formId");
+  const formKey = searchParams.get("formKey");
+  const workflowKey = searchParams.get("workflowKey");
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<any>({});
-  const [formMapping, setFormMapping] = useState<any>(null);
+  const [selectedForm, setSelectedForm] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
@@ -59,20 +60,19 @@ export default function NewRequest() {
       { tester: ageSliderControlTester, renderer: AgeSliderControl },
       { tester: fileUploadControlTester, renderer: FileUploadControl },
     ],
-    []
+    [],
   );
 
-  const { data: formMappingData, isLoading } = useQuery({
-    queryKey: ["formMapping", formId],
-    queryFn: () => (formId ? api.getFormMappingById(parseInt(formId)) : null),
-    enabled: !!formId,
+  const { data: formsData, isLoading } = useQuery({
+    queryKey: ["forms"],
+    queryFn: () => api.getForms(),
   });
 
   useEffect(() => {
-    if (formMappingData?.data) {
-      setFormMapping(formMappingData.data);
-    }
-  }, [formMappingData]);
+    if (!formKey || !formsData?.data) return;
+    const found = formsData.data.find((form: any) => form.key === formKey);
+    setSelectedForm(found ?? null);
+  }, [formKey, formsData]);
 
   const submitMutation = useMutation({
     mutationFn: async ({ data, schema }: { data: any; schema: any }) => {
@@ -94,7 +94,7 @@ export default function NewRequest() {
         formData.append("data", JSON.stringify(cleanData));
         formData.append("schema", JSON.stringify(schema));
         formData.append("refId", `REQ-${Date.now()}`);
-        formData.append("workflowId", formMapping.workflowId || "");
+        formData.append("workflowId", workflowKey || "");
         formData.append("createdBy", user?.email || "anonymous");
         console.log(formData);
 
@@ -110,7 +110,7 @@ export default function NewRequest() {
             data,
             schema,
             refId: `REQ-${Date.now()}`,
-            workflowId: formMapping.workflowId || "",
+            workflowId: workflowKey || "",
             createdBy: user?.email || "anonymous",
           }),
         });
@@ -151,10 +151,11 @@ export default function NewRequest() {
   };
 
   const handleSubmit = () => {
-    submitMutation.mutate({ data: formData, schema: formMapping.formSchema });
+    if (!selectedForm) return;
+    submitMutation.mutate({ data: formData, schema: selectedForm.schema });
   };
 
-  if (!formId) {
+  if (!formKey || !workflowKey) {
     navigate("/new");
     return null;
   }
@@ -187,7 +188,7 @@ export default function NewRequest() {
           breadcrumbs={[
             { label: "Home", path: "/history" },
             { label: "New Request", path: "/new" },
-            { label: formMapping?.name || "Form" },
+            { label: selectedForm?.name || formKey || "Form" },
           ]}
         />
         <Button variant="outlined" onClick={() => navigate("/history")}>
@@ -196,15 +197,15 @@ export default function NewRequest() {
       </Box>
 
       <Paper sx={{ p: 4, maxWidth: 800 }}>
-        {formMapping && (
+        {selectedForm && (
           <>
             <Typography variant="h5" mb={3}>
-              {formMapping.name}
+              {selectedForm.name}
             </Typography>
             <Box sx={{ "& .MuiFormControl-root": { mb: 3 } }}>
               <JsonForms
-                schema={formMapping.formSchema}
-                uischema={formMapping.uiSchema}
+                schema={selectedForm.schema}
+                uischema={selectedForm.uiSchema}
                 data={formData}
                 renderers={renderers}
                 cells={materialCells}
