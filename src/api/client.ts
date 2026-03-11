@@ -1,78 +1,136 @@
-const API_BASE_URL = 'https://41l5r34h-3001.asse.devtunnels.ms/api'
-const WORKFLOW_API_BASE_URL = 'https://41l5r34h-3002.asse.devtunnels.ms/api/v1'
+const API_BASE_URL = "https://41l5r34h-3001.asse.devtunnels.ms/api";
+const WORKFLOW_API_BASE_URL = "https://41l5r34h-3002.asse.devtunnels.ms/api/v1";
 
 export const api = {
-  async getWorkflowInstances(createdBy?: string) {
-    const url = createdBy 
-      ? `${WORKFLOW_API_BASE_URL}/workflows/instances?createdBy=${encodeURIComponent(createdBy)}`
-      : `${WORKFLOW_API_BASE_URL}/workflows/instances`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Failed to fetch workflow instances')
-    return res.json()
+  async getTasks(params: {
+    userId: string;
+    roleId: string;
+    page?: number;
+    pageSize?: number;
+    status?: string;
+  }) {
+    const query = new URLSearchParams();
+    if (params.page) query.set("page", String(params.page));
+    if (params.pageSize) query.set("pageSize", String(params.pageSize));
+    if (params.status) query.set("status", params.status);
+
+    const url = `${WORKFLOW_API_BASE_URL}/tasks${query.toString() ? `?${query.toString()}` : ""}`;
+
+    const res = await fetch(url, {
+      headers: {
+        "x-user-id": params.userId,
+        "x-role-id": params.roleId,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch tasks");
+    return res.json();
   },
 
-  async startWorkflow(workflowId: string, refId: string, context: any, createdBy: string) {
-    const res = await fetch(`${WORKFLOW_API_BASE_URL}/workflows/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ workflowId, refId, context, createdBy }),
-    })
-    if (!res.ok) throw new Error('Failed to start workflow')
-    return res.json()
+  async getWorkflowInstances(createdBy?: string) {
+    const url = createdBy
+      ? `${WORKFLOW_API_BASE_URL}/workflows/instances?createdBy=${encodeURIComponent(createdBy)}`
+      : `${WORKFLOW_API_BASE_URL}/workflows/instances`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch workflow instances");
+    return res.json();
   },
+
+  async completeTask(params: {
+    taskId: string;
+    instanceId: string;
+    isApproved: boolean;
+    remark?: string;
+  }) {
+    const res = await fetch(
+      `${WORKFLOW_API_BASE_URL}/tasks/${params.taskId}/complete`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instanceId: params.instanceId,
+          isApproved: params.isApproved,
+          remark: params.remark || "-",
+        }),
+      },
+    );
+    if (!res.ok) throw new Error("Failed to complete task");
+    return res.json();
+  },
+
+  async startWorkflow(
+    workflowId: string,
+    refId: string,
+    context: any,
+    createdBy: string,
+  ) {
+    const res = await fetch(`${WORKFLOW_API_BASE_URL}/workflows/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workflowId, refId, context, createdBy }),
+    });
+    if (!res.ok) throw new Error("Failed to start workflow");
+    return res.json();
+  },
+
   async getSubmissions() {
-    const res = await fetch(`${API_BASE_URL}/submissions`)
-    if (!res.ok) throw new Error('Failed to fetch submissions')
-    return res.json()
+    const res = await fetch(`${API_BASE_URL}/submissions`);
+    if (!res.ok) throw new Error("Failed to fetch submissions");
+    return res.json();
   },
 
   async submitForm(data: any, schema: any) {
     const res = await fetch(`${API_BASE_URL}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data, schema }),
-    })
-    if (!res.ok) throw new Error('Failed to submit form')
-    return res.json()
+    });
+    if (!res.ok) throw new Error("Failed to submit form");
+    return res.json();
   },
 
   async getFormMappings() {
-    const res = await fetch(`${API_BASE_URL}/form-mappings`)
-    if (!res.ok) throw new Error('Failed to fetch form mappings')
-    return res.json()
+    const res = await fetch(`${API_BASE_URL}/form-mappings`);
+    if (!res.ok) throw new Error("Failed to fetch form mappings");
+    return res.json();
   },
 
   async getFormMappingById(id: number) {
-    const res = await fetch(`${API_BASE_URL}/form-mappings/${id}`)
-    if (!res.ok) throw new Error('Failed to fetch form mapping')
-    return res.json()
+    const res = await fetch(`${API_BASE_URL}/form-mappings/${id}`);
+    if (!res.ok) throw new Error("Failed to fetch form mapping");
+    return res.json();
   },
 
   async createFormMapping(data: any) {
     const res = await fetch(`${API_BASE_URL}/form-mappings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    })
-    if (!res.ok) throw new Error('Failed to create form mapping')
-    return res.json()
+    });
+    if (!res.ok) throw new Error("Failed to create form mapping");
+    return res.json();
   },
 
   async updateFormMapping(id: number, data: any) {
     const res = await fetch(`${API_BASE_URL}/form-mappings/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    })
-    if (!res.ok) throw new Error('Failed to update form mapping')
-    return res.json()
+    });
+    if (!res.ok) throw new Error("Failed to update form mapping");
+    return res.json();
   },
 
   async deleteFormMapping(id: number) {
     const res = await fetch(`${API_BASE_URL}/form-mappings/${id}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) throw new Error('Failed to delete form mapping')
-    return res.json()
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete form mapping");
+    return res.json();
   },
-}
+
+  async getRoles() {
+    const res = await fetch(`${WORKFLOW_API_BASE_URL}/roles`);
+    if (!res.ok) throw new Error("Failed to fetch roles");
+    return res.json();
+  },
+};

@@ -1,17 +1,23 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface User {
-  id: number
-  email: string
-  name: string
+  id: number;
+  email: string;
+  name: string;
+  roleId: string;
+  roleName: string;
 }
 
 interface AuthState {
-  user: User | null
-  token: string | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  user: User | null;
+  token: string | null;
+  login: (
+    email: string,
+    password: string,
+    role: { id: string; name: string },
+  ) => Promise<void>;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,14 +25,25 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      login: async (email: string, password: string) => {
+      login: async (
+        email: string,
+        password: string,
+        role: { id: string; name: string },
+      ) => {
+        void password;
         // Mock login - replace with actual API call
-        const mockUser = { id: 1, email, name: 'User' }
-        const mockToken = 'mock-token-' + Date.now()
-        set({ user: mockUser, token: mockToken })
+        const mockUser = {
+          id: 1,
+          email,
+          name: role.name,
+          roleId: role.id,
+          roleName: role.name,
+        };
+        const mockToken = "mock-token-" + Date.now();
+        set({ user: mockUser, token: mockToken });
       },
       logout: () => set({ user: null, token: null }),
     }),
-    { name: 'auth-storage' }
-  )
-)
+    { name: "auth-storage" },
+  ),
+);

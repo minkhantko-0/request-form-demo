@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Box,
   Button,
@@ -21,7 +21,6 @@ import { createAjv } from "@jsonforms/core";
 import ajvErrors from "ajv-errors";
 import { api } from "../api/client";
 import { useAuthStore } from "../store/authStore";
-import Header from "../components/Header";
 import RatingControl from "../renderers/RatingControl";
 import ratingControlTester from "../testers/ratingControlTester";
 import AgeSliderControl from "../renderers/AgeSliderControl";
@@ -32,25 +31,41 @@ import fileUploadControlTester from "../testers/fileUploadControlTester";
 const ajv = createAjv({ allErrors: true });
 ajvErrors(ajv);
 
+const viteEnv = (import.meta as any).env || {};
+
 const Envs = {
-  API_URL: import.meta.env.VITE_API_URL || "http://localhost:3001",
+  API_URL: viteEnv.VITE_API_URL || "http://localhost:3001",
 };
 
-export default function NewRequest() {
+type NewRequestProps = {
+  fixedFormId?: number;
+  homePath?: string;
+  successPath?: string;
+  newRequestPath?: string;
+  initialData?: Record<string, any>;
+};
+
+export default function NewRequest({
+  fixedFormId,
+  homePath = "/history",
+  successPath = "/history",
+  newRequestPath = "/new",
+  initialData,
+}: NewRequestProps) {
+  void homePath;
+  void newRequestPath;
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const formId = searchParams.get("formId");
+  const formId = fixedFormId ? String(fixedFormId) : searchParams.get("formId");
   const user = useAuthStore((state) => state.user);
-  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<any>({});
   const [formMapping, setFormMapping] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
-
-  const clearStoreData = () => {
-    setFormData({});
-  };
+  const initialDataAppliedRef = useRef(false);
 
   const renderers = useMemo(
     () => [
@@ -59,7 +74,7 @@ export default function NewRequest() {
       { tester: ageSliderControlTester, renderer: AgeSliderControl },
       { tester: fileUploadControlTester, renderer: FileUploadControl },
     ],
-    []
+    [],
   );
 
   const { data: formMappingData, isLoading } = useQuery({
@@ -73,6 +88,12 @@ export default function NewRequest() {
       setFormMapping(formMappingData.data);
     }
   }, [formMappingData]);
+
+  useEffect(() => {
+    if (!initialData || initialDataAppliedRef.current) return;
+    setFormData(initialData);
+    initialDataAppliedRef.current = true;
+  }, [initialData]);
 
   const submitMutation = useMutation({
     mutationFn: async ({ data, schema }: { data: any; schema: any }) => {
@@ -146,11 +167,20 @@ export default function NewRequest() {
   const handleModalClose = () => {
     setModalOpen(false);
     if (modalContent.title === "Success") {
-      navigate("/history");
+      navigate(successPath);
     }
   };
 
   const handleSubmit = () => {
+    if (validationErrors.length > 0) {
+      setModalContent({
+        title: "Validation Error",
+        message: "Please fix validation errors before submitting.",
+      });
+      setModalOpen(true);
+      return;
+    }
+
     submitMutation.mutate({ data: formData, schema: formMapping.formSchema });
   };
 
@@ -183,19 +213,19 @@ export default function NewRequest() {
           alignItems: "flex-start",
         }}
       >
-        <Header
+        {/* <Header
           breadcrumbs={[
-            { label: "Home", path: "/history" },
-            { label: "New Request", path: "/new" },
+            { label: "Home", path: homePath },
+            { label: "New Request", path: newRequestPath },
             { label: formMapping?.name || "Form" },
           ]}
-        />
-        <Button variant="outlined" onClick={() => navigate("/history")}>
-          Back to History
-        </Button>
+        /> */}
+        {/* <Button variant="outlined" onClick={() => navigate(homePath)}>
+          Back
+        </Button> */}
       </Box>
 
-      <Paper sx={{ p: 4, maxWidth: 800 }}>
+      <Paper sx={{ p: 4, maxWidth: 800, margin: "0px auto" }}>
         {formMapping && (
           <>
             <Typography variant="h5" mb={3}>
@@ -209,14 +239,17 @@ export default function NewRequest() {
                 renderers={renderers}
                 cells={materialCells}
                 ajv={ajv}
-                onChange={({ data }) => setFormData(data)}
+                onChange={({ data, errors }) => {
+                  setFormData(data);
+                  setValidationErrors(errors || []);
+                }}
               />
             </Box>
             <Button
               variant="contained"
               color="primary"
               onClick={handleSubmit}
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || validationErrors.length > 0}
               sx={{ mt: 3 }}
             >
               {submitMutation.isPending ? (
