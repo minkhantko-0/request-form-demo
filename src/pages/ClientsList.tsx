@@ -234,7 +234,7 @@ export default function ClientsList() {
                                     size="small"
                                     onClick={() =>
                                       navigate(
-                                        `/console/clients/${task.id}/edit`,
+                                        `/console/clients/${task.id}/edit?formKey=client_onboarding&workflowKey=client_onboarding`,
                                         {
                                           state: { task },
                                         },

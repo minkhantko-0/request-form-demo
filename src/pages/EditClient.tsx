@@ -9,6 +9,7 @@ export default function EditClient() {
   const { taskId } = useParams();
   const task = (location.state as any)?.task;
 
+  console.log("task ", task);
   if (!task) {
     return (
       <Paper sx={{ p: 4 }}>
@@ -34,7 +35,8 @@ export default function EditClient() {
         Edit Client ({taskId})
       </Typography>
       <NewRequest
-        fixedFormId={6}
+        formKey={"h2h_client_onboarding"}
+        fixedFormId={0}
         homePath="/console/clients"
         successPath="/console/clients"
         newRequestPath={`/console/clients/${task.id}/edit`}
@@ -45,10 +47,7 @@ export default function EditClient() {
           api.dispatchWorkflowEvent({
             instanceId: task.workflowInstance?.id,
             event: "update",
-            payload: {
-              title: data?.title,
-              amount: data?.amount,
-            },
+            payload: data,
           })
         }
       />

@@ -39,6 +39,7 @@ const Envs = {
 
 type NewRequestProps = {
   fixedFormId?: number;
+  formKey?: string;
   homePath?: string;
   successPath?: string;
   newRequestPath?: string;
@@ -49,7 +50,6 @@ type NewRequestProps = {
 };
 
 export default function NewRequest({
-  fixedFormId,
   homePath = "/history",
   successPath = "/history",
   newRequestPath = "/new",
@@ -57,18 +57,21 @@ export default function NewRequest({
   customSubmit,
   submitButtonLabel = "Submit Request",
   successMessage = "Request submitted successfully!",
+  ...props
 }: NewRequestProps) {
   void homePath;
   void newRequestPath;
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const formId = fixedFormId ? String(fixedFormId) : searchParams.get("formId");
+  const formKey = searchParams.get("formKey");
+  const workflowKey = searchParams.get("workflowKey");
   const user = useAuthStore((state) => state.user);
 
   const [formData, setFormData] = useState<any>({});
   const [formMapping, setFormMapping] = useState<any>(null);
   const [validationErrors, setValidationErrors] = useState<any[]>([]);
+  const [selectedForm, setSelectedForm] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
   const initialDataAppliedRef = useRef(false);
@@ -83,23 +86,24 @@ export default function NewRequest({
     [],
   );
 
-  const { data: formMappingData, isLoading } = useQuery({
-    queryKey: ["formMapping", formId],
-    queryFn: () => (formId ? api.getFormMappingById(parseInt(formId)) : null),
-    enabled: !!formId,
+  const { data: formsData, isLoading } = useQuery({
+    queryKey: ["forms"],
+    queryFn: () => api.getForms(),
   });
 
   useEffect(() => {
-    if (formMappingData?.data) {
-      setFormMapping(formMappingData.data);
-    }
-  }, [formMappingData]);
+    if (!formKey || !formsData?.data) return;
+    const found = formsData.data.find((form: any) => form.key === formKey);
+    setSelectedForm(found ?? null);
+  }, [formKey, formsData]);
 
   useEffect(() => {
     if (!initialData || initialDataAppliedRef.current) return;
     setFormData(initialData);
     initialDataAppliedRef.current = true;
   }, [initialData]);
+
+  console.log("selectedForm", selectedForm);
 
   const submitMutation = useMutation({
     mutationFn: async ({ data, schema }: { data: any; schema: any }) => {
@@ -125,7 +129,7 @@ export default function NewRequest({
         formData.append("data", JSON.stringify(cleanData));
         formData.append("schema", JSON.stringify(schema));
         formData.append("refId", `REQ-${Date.now()}`);
-        formData.append("workflowId", formMapping.workflowId || "");
+        formData.append("workflowId", workflowKey || "");
         formData.append("createdBy", user?.email || "anonymous");
         console.log(formData);
 
@@ -141,7 +145,7 @@ export default function NewRequest({
             data,
             schema,
             refId: `REQ-${Date.now()}`,
-            workflowId: formMapping.workflowId || "",
+            workflowId: workflowKey || "",
             createdBy: user?.email || "anonymous",
           }),
         });
@@ -196,10 +200,10 @@ export default function NewRequest({
       return;
     }
 
-    submitMutation.mutate({ data: formData, schema: formMapping.formSchema });
+    submitMutation.mutate({ data: formData, schema: selectedForm?.schema });
   };
 
-  if (!formId) {
+  if (!formKey || !workflowKey) {
     navigate("/new");
     return null;
   }
@@ -241,15 +245,15 @@ export default function NewRequest({
       </Box>
 
       <Paper sx={{ p: 4, maxWidth: 800, margin: "0px auto" }}>
-        {formMapping && (
+        {selectedForm && (
           <>
             <Typography variant="h5" mb={3}>
-              {formMapping.name}
+              {selectedForm.name}
             </Typography>
             <Box sx={{ "& .MuiFormControl-root": { mb: 3 } }}>
               <JsonForms
-                schema={formMapping.formSchema}
-                uischema={formMapping.uiSchema}
+                schema={selectedForm.schema}
+                uischema={selectedForm.uiSchema}
                 data={formData}
                 renderers={renderers}
                 cells={materialCells}

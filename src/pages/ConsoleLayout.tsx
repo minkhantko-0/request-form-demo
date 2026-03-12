@@ -44,7 +44,11 @@ export default function ConsoleLayout() {
           </Button>
           <Button
             variant="contained"
-            onClick={() => navigate("/console/create-client")}
+            onClick={() =>
+              navigate(
+                "/console/create-client?formKey=client_onboarding&workflowKey=client_onboarding",
+              )
+            }
             sx={{ mr: 2 }}
           >
             Create Client

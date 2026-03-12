@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://41l5r34h-3001.asse.devtunnels.ms/api";
-const WORKFLOW_API_BASE_URL = "https://41l5r34h-3002.asse.devtunnels.ms/api/v1";
+const API_BASE_URL = "http://localhost:3001/api";
+const WORKFLOW_API_BASE_URL = "http://localhost:3002/api/v1";
 
 export const api = {
   async getTasks(params: {
@@ -106,12 +106,46 @@ export const api = {
   },
 
   async submitForm(data: any, schema: any) {
+    console.log(data);
+    const hasFiles = Object.values(data).some((v) => v instanceof File);
+    console.log("Has files:", hasFiles);
+    if (hasFiles) {
+      const formData = new FormData();
+      const cleanData: any = {};
+
+      for (const [key, value] of Object.entries(data)) {
+        console.log("key:", key, "value:", value);
+        if (value instanceof File) {
+          console.log("val is file:", value);
+          formData.append(key, value);
+        } else {
+          cleanData[key] = value;
+        }
+      }
+
+      formData.append("data", JSON.stringify(cleanData));
+      formData.append("schema", JSON.stringify(schema));
+      console.log(formData);
+      const res = await fetch(`${API_BASE_URL}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "multipart/form-data" },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed to submit form");
+      return res.json();
+    }
     const res = await fetch(`${API_BASE_URL}/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data, schema }),
     });
     if (!res.ok) throw new Error("Failed to submit form");
+    return res.json();
+  },
+
+  async getForms() {
+    const res = await fetch(`${API_BASE_URL}/forms`);
+    if (!res.ok) throw new Error("Failed to fetch forms");
     return res.json();
   },
 
