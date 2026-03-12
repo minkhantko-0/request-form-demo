@@ -57,6 +57,33 @@ export const api = {
     return res.json();
   },
 
+  async dispatchWorkflowEvent(params: {
+    instanceId: string;
+    event: string;
+    payload: Record<string, any>;
+  }) {
+    const res = await fetch(
+      `${WORKFLOW_API_BASE_URL}/workflows/instances/${params.instanceId}/dispatch`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: params.event,
+          payload: params.payload,
+        }),
+      },
+    );
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(
+        result?.error?.message || "Failed to dispatch workflow event",
+      );
+    }
+
+    return result;
+  },
+
   async startWorkflow(
     workflowId: string,
     refId: string,

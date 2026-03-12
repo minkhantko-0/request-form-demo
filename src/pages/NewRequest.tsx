@@ -43,6 +43,9 @@ type NewRequestProps = {
   successPath?: string;
   newRequestPath?: string;
   initialData?: Record<string, any>;
+  customSubmit?: (params: { data: any; schema: any }) => Promise<any>;
+  submitButtonLabel?: string;
+  successMessage?: string;
 };
 
 export default function NewRequest({
@@ -51,6 +54,9 @@ export default function NewRequest({
   successPath = "/history",
   newRequestPath = "/new",
   initialData,
+  customSubmit,
+  submitButtonLabel = "Submit Request",
+  successMessage = "Request submitted successfully!",
 }: NewRequestProps) {
   void homePath;
   void newRequestPath;
@@ -97,6 +103,10 @@ export default function NewRequest({
 
   const submitMutation = useMutation({
     mutationFn: async ({ data, schema }: { data: any; schema: any }) => {
+      if (customSubmit) {
+        return customSubmit({ data, schema });
+      }
+
       const hasFiles = Object.values(data).some((v) => v instanceof File);
 
       let response;
@@ -141,10 +151,15 @@ export default function NewRequest({
     },
     onSuccess: (result) => {
       console.log("Submission result:", result);
-      if (result.success) {
+      const isSuccess =
+        result?.success === true ||
+        result?.status === 200 ||
+        result?.status === 202;
+
+      if (isSuccess) {
         setModalContent({
           title: "Success",
-          message: "Request submitted successfully!",
+          message: successMessage,
         });
         setModalOpen(true);
       } else {
@@ -255,7 +270,7 @@ export default function NewRequest({
               {submitMutation.isPending ? (
                 <CircularProgress size={24} />
               ) : (
-                "Submit Request"
+                submitButtonLabel
               )}
             </Button>
           </>

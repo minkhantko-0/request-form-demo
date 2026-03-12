@@ -1,6 +1,7 @@
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import NewRequest from "./NewRequest";
+import { api } from "../api/client";
 
 export default function EditClient() {
   const navigate = useNavigate();
@@ -38,6 +39,18 @@ export default function EditClient() {
         successPath="/console/clients"
         newRequestPath={`/console/clients/${task.id}/edit`}
         initialData={task.workflowInstance?.variables || {}}
+        submitButtonLabel="Dispatch Update"
+        successMessage="Update event dispatched successfully!"
+        customSubmit={({ data }) =>
+          api.dispatchWorkflowEvent({
+            instanceId: task.workflowInstance?.id,
+            event: "update",
+            payload: {
+              title: data?.title,
+              amount: data?.amount,
+            },
+          })
+        }
       />
     </Box>
   );
